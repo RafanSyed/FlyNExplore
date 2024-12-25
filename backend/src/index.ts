@@ -1,18 +1,26 @@
 import express, { Request, Response} from "express";
 import axios from 'axios';
 import * as dotenv from 'dotenv';
+import cors from 'cors';
 
 
 dotenv.config()
 
 
 const app = express();
+app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
 let accessToken = "";
 let tokenExpiryTime = 0;
+
+app.use(cors({
+    origin: 'http://localhost:3001', // Replace with your frontend's origin
+    methods: ['GET', 'POST'], // Allowed HTTP methods
+    credentials: true // If you need to include cookies or authentication headers
+  }));
 
 const fetchAccessToken = async (): Promise<void> => {
     try {
@@ -49,6 +57,10 @@ const ensureValidToken = async (req: Request, res: Response, next: Function): Pr
         res.status(500).json({ message: "Failed to authenticate with Amadeus API" });
     }
 };
+
+app.get('/auth/token', ensureValidToken, (req: Request, res: Response) => {
+    res.status(200).json({ accessToken });
+  });  
 
 
 app.get('/reference-data/locations', ensureValidToken, async (req: Request, res: Response) => {
@@ -151,6 +163,46 @@ app.get('/shopping/flight-offers', ensureValidToken, async (req: Request, res: R
     }
 });
 
+app.post('/artificial-intelligence', async (req: Request, res: Response): Promise<any>=> {
+  try {
+    console.log('Middleware works, request reached the handler.');
+    const { prompt } = req.body;
+
+    if (!prompt) {
+      console.log('Prompt is missing.');
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    console.log('Received prompt:', prompt);
+
+    const apiKey = process.env.API_KEY;
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log('Gemini API response:', response.data);
+    res.status(200).json(response.data);
+  } catch (error: any) {
+    console.error('Error interacting with the Gemini API:', error.message);
+    res.status(500).json({ error: 'Failed to fetch data from Gemini API' });
+  }
+});
 
 app.listen(PORT, async () => {
     try {

@@ -1,27 +1,222 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Reset basic styles */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  height: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Layout container */
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Full viewport height */
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* Header styling */
+.header {
+  position: fixed; /* Sticks to the top */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px; /* Define header height */
+  background-color: #282c34;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  z-index: 1100; /* Below the sidebar */
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* Sidebar styling */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -250px;
+  height: 100%;
+  width: 250px;
+  background-color: #333;
+  color: white;
+  overflow-y: auto;
+  transition: transform 0.3s ease; /* Smooth slide-in effect */
+  z-index: 1200; /* Above the header */
+}
+
+.sidebar.open {
+  transform: translateX(250px); /* Slides into view */
+}
+
+/* Main content */
+main {
+  margin-top: 80px; /* Matches header height */
+  padding: 1rem;
+  flex: 1; /* Ensures it fills available space */
+  background-color: #f9f9f9;
+  z-index: 1; /* Below sidebar */
+}
+
+/* Footer styling */
+footer {
+  text-align: center;
+  padding: 1rem;
+  background-color: #f4f4f4;
+  flex-shrink: 0;
+}
+
+/* Title styling */
+.title {
+  text-align: center;
+  margin-right: 620px;
+  font-size: 2.5rem;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+/* Sidebar navigation */
+/* Sidebar navigation container */
+.sidebar-nav {
+  padding: 2rem 1rem; /* Add space around the links */
+}
+
+/* Sidebar navigation list */
+.sidebar-nav-list {
+  list-style: none; /* Remove bullet points */
+  margin: 0;
+  padding: 0;
+}
+
+/* Sidebar navigation items */
+.sidebar-nav-item {
+  margin-bottom: 1rem; /* Add spacing between links */
+}
+
+/* Sidebar navigation links */
+.sidebar-nav-item a {
+  display: block; /* Make the link area clickable */
+  text-decoration: none; /* Remove underline */
+  color: #ffffff; /* Set link color to white */
+  font-weight: bold; /* Make text bold */
+  padding: 0.5rem 1rem; /* Add padding for a clickable area */
+  border-radius: 5px; /* Slightly round corners */
+  background-color: transparent; /* Transparent background by default */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth hover effects */
+}
+
+/* Hover effect for links */
+.sidebar-nav-item a:hover {
+  background-color: #61dafb; /* Highlight background on hover */
+  color: #333; /* Change text color on hover */
+}
+
+/* Active/selected link style */
+.sidebar-nav-item a.active {
+  background-color: #61dafb; /* Highlight active link */
+  color: #333; /* Ensure active link text is visible */
+}
+
+/* Flights page styling */
+.flights-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.flights-page h2 {
+  font-size: 1.8rem;
+  color: #282c34;
+}
+
+.flights-page form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.flights-page input,
+.flights-page select,
+.flights-page button {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.flights-page button {
+  background-color: #61dafb;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.flights-page button:hover {
+  background-color: #007bff;
+}
+
+/* Hotels page styling */
+.hotels-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hotels-page h2 {
+  font-size: 1.8rem;
+  color: #282c34;
+}
+
+.hotels-page form {
+  display: flex;
+  gap: 1rem;
+}
+
+.hotels-page input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.hotels-page button {
+  padding: 0.5rem 1rem;
+  background-color: #61dafb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.hotels-page button:hover {
+  background-color: #007bff;
+}
+
+.hotels-results {
+  margin-top: 2rem;
+}
+
+.hotels-results ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hotels-results li {
+  padding: 1rem;
+  border: 1px solid #ccc;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  background-color: #f4f4f4;
 }
