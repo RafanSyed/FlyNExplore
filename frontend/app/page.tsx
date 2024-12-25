@@ -1,101 +1,153 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState } from "react";
+
+// AI function to fetch the weekly schedule
+const getWeeklySchedule = async (cityName: string) => {
+  try {
+    const response = await fetch("http://localhost:3000/artificial-intelligence", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: `Provide a detailed weekly schedule of activities for ${cityName} as a JSON object. The object should have keys for each day of the week ("Monday" to "Sunday"). Each day should be an array of objects, and each object should include the following fields: "name" (activity name), "time" (e.g., "10:00 AM"), "location" (e.g., "City Park"), "latitude" (decimal), and "longitude" (decimal). Example format: { "Monday": [{ "name": "Visit City Park", "time": "10:00 AM", "location": "City Park", "latitude": 27.94752, "longitude": -82.45843 }], "Tuesday": [], ... }. Return only the JSON object.`,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Extract and parse the JSON from the AI response
+    const rawText = data.candidates[0].content.parts[0].text;
+    const jsonText = rawText.replace(/```json|```/g, "").trim(); // Remove Markdown syntax
+    return JSON.parse(jsonText); // Parse the cleaned JSON string
+  } catch (error) {
+    console.error("Error fetching weekly schedule:", error);
+    throw error;
+  }
+};
+
+const HomePage = () => {
+  const [searchTerm, setSearchTerm] = useState<string>(""); // City search input
+  const [schedule, setSchedule] = useState<any>(null); // Weekly schedule data
+  const [loading, setLoading] = useState<boolean>(false); // Loading state
+  const [error, setError] = useState<string | null>(null); // Error state
+
+  // Fetch weekly schedule
+  const fetchWeeklySchedule = async (cityName: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await getWeeklySchedule(cityName);
+      setSchedule(data);
+    } catch (err) {
+      setError("Failed to fetch schedule. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle search submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm) {
+      fetchWeeklySchedule(searchTerm);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div style={{ fontFamily: 'Times New Roman, Times, serif', backgroundColor: "#f3f4f6", minHeight: "100vh", padding: "20px" }}>
+      <h1 style={{ textAlign: "center", marginBottom: "20px", color: "#333" }}>Plan Your Week Using AI</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Search Bar */}
+      <form
+        onSubmit={handleSearch}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: "10px",
+          marginBottom: "20px",
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Enter city name (e.g., Tampa)"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          required
+          style={{
+            padding: "10px",
+            fontSize: "16px",
+            border: "1px solid #ccc",
+            borderRadius: "5px",
+            width: "300px",
+          }}
+        />
+        <button
+          type="submit"
+          style={{
+            padding: "10px 20px",
+            fontSize: "16px",
+            backgroundColor: "#007BFF",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          {loading ? "Searching..." : "Search"}
+        </button>
+      </form>
+
+      {/* Error Message */}
+      {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
+
+      {/* Weekly Schedule */}
+      {loading && <p style={{ textAlign: "center" }}>Loading...</p>}
+
+      {schedule && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "10px", margin: "20px" }}>
+          {Object.keys(schedule).map((day, index) => (
+            <div
+              key={day}
+              style={{
+                border: "1px solid #ccc",
+                borderRadius: "10px",
+                padding: "10px",
+                backgroundColor: index % 2 === 0 ? "#d9eaf7" : "#e8f7d9",
+              }}
+            >
+              <h3 style={{ textAlign: "center", marginBottom: "10px", color: "#0056b3" }}>{day}</h3>
+              <ul style={{ listStyle: "none", padding: 0 }}>
+                {schedule[day].map((activity: any, index: number) => (
+                  <li
+                    key={index}
+                    style={{
+                      marginBottom: "10px",
+                      padding: "10px",
+                      border: "1px solid #ccc",
+                      borderRadius: "5px",
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    <strong>{activity.name}</strong> <br />
+                    Time: {activity.time} <br />
+                    Location: {activity.location} <br />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
-}
+};
+
+export default HomePage;
