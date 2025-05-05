@@ -36,7 +36,7 @@ const ActivityPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: `Give me the latitude and longitude of ${cityName} as a JSON object with keys "latitude" and "longitude". Don't return anything else except the JSON object. Here's an example of a city name Tampa: the output should be { "latitude": 27.94752, "longitude": -82.45843 }`,
+          prompt: `Provide only a plain JSON object with the keys \"latitude\" and \"longitude\" for the city ${cityName}—no markdown, no backticks, no explanation. For example Tampa latitude and longitude is : {\"latitude\":27.94752,\"longitude\":-82.45843}.`,
         }),
       });
 
